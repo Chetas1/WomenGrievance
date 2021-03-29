@@ -36,19 +36,23 @@ app.use(cors({origin: 'http://localhost:3000'}));
 
 app.get('/getComplaintsAssociatedWithTeacher/:userId',(req, res) => {
     
-    let sql = `Select * from Complaints where AssignedTo='${req.params.userId}'`;
-
-    let stakeholdersquery = `Select * from Complaints where StakeHolders='cse'`;
-
-    if (req.params.userId == "anjali.raut@hvpm.com")
-        sql = stakeholdersquery;
-    else if(req.params.userId == "pote.abhijeet@hvpm.com")
-        sql = stakeholdersquery;
-
-    db.query(sql, (err, result) => {
+    let userDepartment = `select Department from users where UserId='${req.params.userId}'`
+    let department = ''; 
+    db.query(userDepartment, (err, result) => {
         if(err) throw err;
-        res.send(result);
+        result.forEach(email => {
+            department = (email.Department != '') ? email.Department.toLowerCase(): department;
+        });
+
+        let sql = `Select * from Complaints where StakeHolders='${department}'`;
+
+        db.query(sql, (err, result) => {
+            if(err) throw err;
+            res.send(result);
+        });
+    
     });
+    
 });
 
 
@@ -61,7 +65,7 @@ app.get('/getTimeliness/:complaintId',(req, res) => {
 });
 
 app.get('/resolveComplaint/:complaintId/resolvedBy/:resolvedBy',(req, res) => {
-    let sql = `update  timelines set Status='Resolved' where ComplaintId='${req.params.complaintId}' 
+    let sql = `update  timelines set Status='Resolved',ResolvedDate='${new Date()}' where ComplaintId='${req.params.complaintId}' 
     and AssignedTo = '${req.params.resolvedBy}' and Status ='Active'`;
     db.query(sql, (err, result) => {
         if(err) throw err;
