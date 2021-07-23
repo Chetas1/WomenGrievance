@@ -253,7 +253,7 @@ app.get('/getUser/:userId/password/:password',(req, res) => {
     let sql = `Select * from Users where UserId='${req.params.userId}' and password='${md5(req.params.password)}'`;
     db.query(sql, (err, result) => {
         if(err) throw err;
-        res.send(result.length == 1);
+        res.send(result[0]);
     });
 });
 
